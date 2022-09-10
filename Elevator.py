@@ -13,7 +13,11 @@ class Elevator:
     def add_unit(self, floor_weigth: list):
         self.floor_weigth.append(floor_weigth)
         self.weigth_units += floor_weigth[1]
-
+        try:
+            for i in range(100):
+                print(f"Зашел человек!\n\nЭтаж на котором находится лифт: {self.elevator_location}\nЭтаж на котором человек выйдет: {self.floor_weigth[i][i]}\nВес: {self.floor_weigth[i][i+1]}\nОбщий вес лифта: {self.weigth_units}\n")
+        except:
+            return None
     def elevator_call(self, calling_char):
         CALLING_CHAR = "Y"
         return calling_char == CALLING_CHAR
@@ -23,6 +27,7 @@ class Elevator:
             if self.weigth_units <= self.elevator_capacity:
                 if number_floor < self.floors_count:
                     self.elevator_location = number_floor
+                    print(f'Мы прибыли на {number_floor} этаж\n')
                 else:
                     raise ex1
             else:
@@ -34,23 +39,22 @@ class Elevator:
                 if self.elevator_location == self.floor_weigth[i][i]:
                     self.weigth_units -= self.floor_weigth[i][i+1]
                     self.floor_weigth.pop(i)
+                    print("Человек вышел!\n")
                 i +=1
         except:
             return None
-
-    def __str__(self):
-        return f"Этаж на котором находится лифт: {self.elevator_location}\nЭтаж на котором человек выйдет, вес: {self.floor_weigth}\nОбщий вес лифта: {self.weigth_units}\n"
 
 
 if __name__ == "__main__":
     elev = Elevator(10, 1, 120)
     elev.elevator_call("Y")
     elev.to_ride(3)
-    elev.add_unit([3, 45])
-    print(elev)
+    (elev.add_unit([5, 46]))
+    elev.to_ride(5)
     elev.delete_unit()
-    elev.add_unit([4, 55])
-    print(elev)
-    elev.to_ride(4)
+    (elev.add_unit([6, 45]))
+    elev.to_ride(6)
     elev.delete_unit()
-    print(elev)
+    (elev.add_unit([3, 55]))
+    elev.to_ride(3)
+    elev.delete_unit()
