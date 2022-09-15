@@ -1,5 +1,7 @@
-ex = Exception("Вес выше ожидаемого")
-ex1 = Exception("Номер этажа не соответствует количеству этажей")
+import logging
+
+class TypeUniversalException(Exception):
+    pass
 
 
 class Elevator:
@@ -25,13 +27,15 @@ class Elevator:
     def to_ride(self, number_floor):
         if self.elevator_call:
             if self.weigth_units <= self.elevator_capacity:
-                if number_floor < self.floors_count:
+                if number_floor <= self.floors_count:
                     self.elevator_location = number_floor
                     print(f'Мы прибыли на {number_floor} этаж\n')
                 else:
-                    raise ex1
+                    logging.critical("A message of CRITICAL severity")
+                    raise TypeUniversalException("Указанный этаж находится вне диапазона этажей этого дома")
             else:
-                raise ex
+                logging.warning("A WARNING")
+                raise TypeUniversalException("Вес выше допустимого")
 
     def delete_unit(self, i=0):
         try:
@@ -56,5 +60,5 @@ if __name__ == "__main__":
     elev.to_ride(6)
     elev.delete_unit()
     (elev.add_unit([3, 55]))
-    elev.to_ride(3)
+    elev.to_ride(100)
     elev.delete_unit()
