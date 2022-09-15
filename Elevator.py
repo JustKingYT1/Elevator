@@ -17,14 +17,14 @@ class Elevator:
                 self.elevator_location = number_floor
                 print(f'Мы прибыли на {number_floor} этаж\n')
             else:
-                logging.critical("A message of CRITICAL severity")
+                logging.critical("A messageтеп of CRITICAL severity")
                 raise TypeUniversalException("Указанный этаж находится вне диапазона этажей этого дома")
         else:
             logging.warning("A WARNING")
             raise TypeUniversalException("Вес выше допустимого")
 
     def __str__(self):
-        return f"Этаж на котором находится лифт: {self.elevator_location}\nОбщий вес лифта: {human.weigth_units}\nКоличество людей в лифте: {human.count_units}\n"
+        return f"Этаж на котором находится лифт: {self.elevator_location}\nОбщий вес лифта: {human.weigth_units}\nКоличество пассажиров в лифте: {human.count_units}\n"
 
 
 class Unit:
@@ -71,11 +71,5 @@ if __name__ == "__main__":
     elev = Elevator(10, 1200)
     human = Unit()
     human.to_ride(3)
-    human.add_unit([5, 78])
-    human.add_unit([2, 65])
-    human.add_unit([5, 34])
-    print(elev)
-    human.to_ride(5)
-    print(elev)
-    human.to_ride(2)
-    print(elev)
+    human.add_unit([3, 576])
+    human.to_ride(3)
