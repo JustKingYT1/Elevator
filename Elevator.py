@@ -60,6 +60,12 @@ class Unit:
                 print("Человек вышел!\n")
             i += 1
 
+    #def __str__(self):
+     #   print("Все пассажиры в лифте на данный момент:")
+    #    for i in range(human.count_units):
+    #        print(f"{i + 1})\nЭтаж на котором человек выйдет: {self.units[i][0]}\nВес: {self.units[i][1]}")
+    #    return ""
+
 
 if __name__ == "__main__":
     elev = Elevator(10, 1200)
