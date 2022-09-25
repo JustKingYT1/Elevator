@@ -28,6 +28,7 @@ class Elevator:
                     self.weigth_units += weigth
                     print(f"Зашел человек!\n\nЭтаж на котором человек выйдет: {floor}\nВес: {weigth}\n")
 
+
     def delete_unit(self, i=0):
         number = 0
         while i <= self.floors_count:
