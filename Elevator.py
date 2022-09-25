@@ -1,21 +1,7 @@
 import logging
 import random
 import time
-
-
-class RestoreElevatorError(Exception):
-    def __init__(self, text):
-        self.text = text
-
-
-class NumberFloorError(Exception):
-    def __init__(self, text):
-        self.text = text
-
-
-class WeigthCapacityError(Exception):
-    def __init__(self, text):
-        self.text = text
+from Exceptions import Exceptions as ex
 
 
 # noinspection PyBroadException
@@ -41,10 +27,10 @@ class Elevator:
                 self.elevator_location = number_floor
             else:
                 logging.critical("A message of CRITICAL severity")
-                raise NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
+                raise ex.NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
         else:
             logging.warning("A WARNING")
-            raise WeigthCapacityError("Вес выше допустимого")
+            raise ex.WeigthCapacityError("Вес выше допустимого")
 
     def add_waiting_unit(self, unit: list):
         if self.unit_location <= self.floors_count:
@@ -58,7 +44,7 @@ class Elevator:
                   f"{self.exit_floor}\nВес пассажира и его багажа, если он есть: {self.weigth}кг\n")
         else:
             logging.critical("A message of CRITICAL severity")
-            raise NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
+            raise ex.NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
 
     def delete_waiting_unit(self, i=0):
         while i < self.waiting_count_units:
@@ -71,7 +57,7 @@ class Elevator:
     def add_unit(self, i=0):
         while i < self.waiting_count_units:
             if self.elevator_location == self.waiting_units[i][2]:
-                self.weigth_units += weigth
+                self.weigth_units += self.waiting_units[i][1]
                 self.count_units += 1
                 self.units.append(self.waiting_units[i])
                 print("Человек зашел!\n")
@@ -81,7 +67,7 @@ class Elevator:
         while i < self.count_units:
             if self.elevator_location == self.units[i][0]:
                 self.count_units -= 1
-                self.weigth_units -= self.weigth
+                self.weigth_units -= self.units[i][1]
                 self.units.pop(i)
                 print("Человек вышел!\n")
             i += 1
@@ -139,82 +125,11 @@ class Elevator:
                     print("Лифт восстановлен успешно!\n")
                 else:
                     print("")
-                    raise RestoreElevatorError("Не удалось восстановить лифт, "
-                                               "приносим свои извинения. Спасатели уже вызваны!")
+                    raise ex.RestoreElevatorError("Не удалось восстановить лифт, "
+                                                  "приносим свои извинения. Спасатели уже вызваны!")
             i -= 1
 
     def __str__(self):
         return f"Этаж на котором находится лифт: {self.elevator_location}\nОбщий вес лифта: {self.weigth_units}\n" \
                f"Количество пассажиров в ожидает: {self.waiting_count_units}\nКоличество пассажиров в " \
                f"лифте: {self.count_units}\n"
-
-
-class Human:
-    @staticmethod
-    def call_elevator():
-        return True
-
-
-if __name__ == "__main__":
-    capacity_elev = 1200
-    floor_count_elev = 10
-    elev = Elevator(floor_count_elev, capacity_elev)
-    while True:
-        num_elev_location = elev.elevator_location
-        print("1 - Вызов лифта\n2 - Передвижение лифта\n3 - Информация о лифте\n4 - Выключить лифт\n")
-        number = int(input("Введите число соответствующее команде лифта -> "))
-        print("")
-        if number == 1:
-            print("Лифт вызван!")
-            print("")
-            Human.call_elevator()
-            if Human.call_elevator():
-                unit_location = int(input("Введите этаж куда вызывается лифт -> "))
-                print("")
-                if unit_location <= floor_count_elev:
-                    while True:
-                        print("1 - Добавление пассажира\n2 - Завершить добавление пассажиров\n")
-                        num1 = int(input("Введите число соответствующее команде лифта -> "))
-                        print("")
-                        if num1 == 1:
-                            floor = int(input("Введите этаж куда поедет пассажир, который вызвал лифт -> "))
-                            weigth = int(input("Введите вес пассажира и его багажа, если он есть, который вызвал лифт"
-                                               " -> "))
-                            print('')
-                            elev.add_waiting_unit([floor, weigth, unit_location])
-                        elif num1 == 2:
-                            elev.move(num_elev_location)
-                            break
-                        else:
-                            print("Неверно введена команда, повторите попытку")
-                            print("")
-                else:
-                    raise NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
-        elif number == 2:
-            break_num = random.randint(9, 10)
-            num_floor = int(input("Введите номер этажа куда поедет лифт -> "))
-            print("")
-            if break_num <= 9:
-                elev.to_ride(num_floor)
-            elif break_num == 10:
-                print("Лифт сломался, вызовите поддержку для починки лифта!\n")
-                while True:
-                    print("1 - Вызов поддержки, для починки лифта\n")
-                    num2 = int(input("Введите число соответствующее команде лифта -> "))
-                    print("")
-                    if num2 == 1:
-                        Elevator.restore_elevator()
-                        break
-                    else:
-                        print("Неверно введена команда повторите попытку\n")
-        elif number == 3:
-            print("Ожидающие пассажиры\n")
-            elev.check_waiting_units()
-            print("Пассажиры в лифте\n")
-            elev.check_units()
-            print(elev)
-        elif number == 4:
-            print("Спокойной ночи")
-            break
-        else:
-            print("Неверно введен номер команды, повторите попытку\n")
