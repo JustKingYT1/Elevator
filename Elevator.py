@@ -201,7 +201,7 @@ class Elevator:
                 print(f"Идет починка лифта, осталось {i} секунда")
                 time.sleep(1)
             if i == 1:
-                if random.randint(4, 10) <= 2:
+                if random.randint(1, 10) <= 9:
                     print("")
                     print("Лифт восстановлен успешно!\n")
                     self.elevator_broken = False
