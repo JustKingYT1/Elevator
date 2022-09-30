@@ -1,4 +1,3 @@
-import random
 from Elevator import Elevator
 from Human import Human
 from Exceptions import Exceptions as ex
@@ -41,28 +40,15 @@ if __name__ == "__main__":
                 else:
                     raise ex.NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
         elif number == 2:
-            break_num = random.randint(9, 10)
             num_floor = int(input("Введите номер этажа куда поедет лифт -> "))
             print("")
-            if break_num <= 9:
-                elev.to_ride(num_floor)
-            elif break_num == 10:
-                print("Лифт сломался, вызовите поддержку для починки лифта!\n")
-                while True:
-                    print("1 - Вызов поддержки, для починки лифта\n")
-                    num2 = int(input("Введите число соответствующее команде лифта -> "))
-                    print("")
-                    if num2 == 1:
-                        Elevator.restore_elevator()
-                        break
-                    else:
-                        print("Неверно введена команда повторите попытку\n")
+            elev.to_ride(num_floor)
         elif number == 3:
             print("Ожидающие пассажиры\n")
             elev.check_waiting_units()
             print("Пассажиры в лифте\n")
             elev.check_units()
-            print(elev)
+            elev.check_elevator_condition()
         elif number == 4:
             print("Спокойной ночи")
             break

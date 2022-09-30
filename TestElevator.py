@@ -2,6 +2,7 @@ import unittest
 from Elevator import Elevator
 from Human import Human
 
+
 class TestElevator(unittest.TestCase):
     def setUp(self) -> None:
         self.elev = Elevator(10, 1200)
