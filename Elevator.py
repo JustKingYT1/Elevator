@@ -1,169 +1,168 @@
-import logging
+from loguru import logger
 import random
 import time
-import json as j
+from Human import Passenger
+from Saver import SaverToJSON as s
+from Loader import LoaderToJson as l
 from Exceptions import Exceptions as ex
 
 
 # noinspection PyBroadException
 class Elevator:
     def __init__(self, floors_count, elevator_capacity):
-        self.elevator_broken = False
+        parameters = l.load("parameters.json")
+        self.list_unit = []
         self.num_break = 0
-        self.unit = []
         self.floors_count = floors_count
-        self.elevator_location = 1
         self.elevator_capacity = elevator_capacity
-        self.weigth = 0
-        self.exit_floor = 0
-        self.unit_location = 0
-        self.units = []
-        self.waiting_units = []
-        self.weigth_units = 0
-        self.count_units = 0
-        self.waiting_weigth_units = 0
-        self.waiting_count_units = 0
-        with open("WaitingUnits.json", "r") as read_file:
-            self.waiting_units = j.load(read_file)
-        with open("WaitingUnitsCount.json", "r") as read_file:
-            self.waiting_count_units = j.load(read_file)
-        with open("Units.json", "r") as read_file:
-            self.units = j.load(read_file)
-        with open("UnitsWeigth.json", "r") as read_file:
-            self.weigth_units = j.load(read_file)
-        with open("UnitsCount.json", "r") as read_file:
-            self.count_units = j.load(read_file)
-        with open("ElevatorLocation.json", "r") as read_file:
-            self.elevator_location = j.load(read_file)
+        self.weigth: int = 0
+        self.exit_floor: int = 0
+        self.unit_location: int = 0
+        self.waiting_units = parameters["waiting_units"]
+        self.waiting_count_units = parameters["waiting_count_units"]
+        self.units = parameters["units"]
+        self.weigth_units = parameters["weigth_units"]
+        self.count_units = parameters["count_units"]
+        self.elevator_location = parameters["elevator_location"]
 
     def move(self, number_floor):
-        if not self.elevator_broken:
-            if self.weigth_units <= self.elevator_capacity:
-                if number_floor <= self.floors_count:
-                    self.elevator_location = number_floor
-                    with open("ElevatorLocation.json", "w") as write_file:
-                        j.dump(self.elevator_location, write_file)
-                else:
-                    logging.critical("A message of CRITICAL severity")
-                    raise ex.NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
+        if self.weigth_units <= self.elevator_capacity:
+            if self.floors_count >= number_floor > 0:
+                self.elevator_location = number_floor
             else:
-                logging.warning("A WARNING")
-                raise ex.WeigthCapacityError("Вес выше допустимого")
-        else:
-            raise ex.RestoreElevatorError("Не удалось восстановить лифт, "
-                                          "приносим свои извинения. Спасатели уже вызваны!")
-
-    def add_waiting_unit(self, unit: list):
-        if not self.elevator_broken:
-            if self.unit_location <= self.floors_count:
-                self.unit = unit
-                self.exit_floor = unit[0]  # Этаж на котором пассажир выйдет
-                self.weigth = unit[1]  # Вес багажа и его пассажира
-                self.unit_location = unit[2]  # местоположение ожидающего пассажира
-                self.waiting_units.append(unit)
-                self.waiting_count_units += 1
-                with open("WaitingUnits.json", "w") as write_file:
-                    j.dump(self.waiting_units, write_file)
-                with open("WaitingUnitsCount.json", "w") as write_file:
-                    j.dump(self.waiting_count_units, write_file)
-                print(f"Этаж на котором человек ожидает лифт: {self.unit_location}\nЭтаж на котором человек выйдет: "
-                      f"{self.exit_floor}\nВес пассажира и его багажа, если он есть: {self.weigth}кг\n")
-            else:
-                logging.critical("A message of CRITICAL severity")
+                logger.critical("A message of CRITICAL severity")
                 raise ex.NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
         else:
-            raise ex.RestoreElevatorError("Не удалось восстановить лифт, "
-                                          "приносим свои извинения. Спасатели уже вызваны!")
+            logger.warning("A WARNING")
+            raise ex.WeigthCapacityError("Вес выше допустимого")
 
-    def delete_waiting_unit(self, i=0):
-        if not self.elevator_broken:
-            while i < self.waiting_count_units:
-                if self.elevator_location == self.waiting_units[i][2]:  # сравнение местоположения лифта с
-                    # местоположением ожидающего пассажира
-                    self.waiting_count_units -= 1
-                    self.waiting_units.pop(i)
-                    with open("WaitingUnits.json", "w") as write_file:
-                        j.dump(self.waiting_units, write_file)
-                    with open("WaitingUnitsCount.json", "w") as write_file:
-                        j.dump(self.waiting_count_units, write_file)
-                    print("Очередь уменьшилась на 1\n")
-                i += 1
+    def auto_move_for_wait_units(self):
+        i = 0
+        if self.weigth_units <= self.elevator_capacity:
+            if self.elevator_location <= self.floors_count:
+                count_waiting_units = self.waiting_count_units
+                while i != count_waiting_units:
+                    j = 0
+                    while j < self.floors_count:
+                        if self.elevator_location < self.waiting_units[0][2]:
+                            self.elevator_location += 1
+                        elif self.elevator_location > self.waiting_units[0][2]:
+                            self.elevator_location -= 1
+                        elif self.elevator_location == self.waiting_units[0][2]:
+                            break
+                        j += 1
+                    print("")
+                    print(f"Мы прибыли на {self.elevator_location} этаж")
+                    print("")
+                    self.add_units()
+                    self.delete_waiting_units()
+                    i += 1
+                self.save()
+            else:
+                logger.critical("A message of CRITICAL severity")
+                raise ex.NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
         else:
-            raise ex.RestoreElevatorError("Не удалось восстановить лифт, "
-                                          "приносим свои извинения. Спасатели уже вызваны!")
+            logger.warning("A WARNING")
+            raise ex.WeigthCapacityError("Вес выше допустимого")
 
-    def add_unit(self, i=0):
-        if not self.elevator_broken:
-            while i < self.waiting_count_units:
-                if self.elevator_location == self.waiting_units[i][2]:
-                    self.weigth_units += self.waiting_units[i][1]
-                    self.count_units += 1
-                    self.units.append(self.waiting_units[i])
-                    with open("Units.json", "w") as write_file:
-                        j.dump(self.units, write_file)
-                    with open("UnitsWeigth.json", "w") as write_file:
-                        j.dump(self.weigth_units, write_file)
-                    with open("UnitsCount.json", "w") as write_file:
-                        j.dump(self.count_units, write_file)
-                    print("Человек зашел!\n")
-                i += 1
+    def auto_move_for_units(self):
+        i = 0
+        if self.weigth_units <= self.elevator_capacity:
+            if self.elevator_location <= self.floors_count:
+                count_units = self.count_units
+                while i != count_units:
+                    j = 0
+                    while j < self.floors_count:
+                        if self.elevator_location < self.units[0][0]:
+                            self.elevator_location += 1
+                        elif self.elevator_location > self.units[0][0]:
+                            self.elevator_location -= 1
+                        elif self.elevator_location == self.units[0][0]:
+                            break
+                        j += 1
+                    print("")
+                    print(f"Мы прибыли на {self.elevator_location} этаж")
+                    print("")
+                    self.delete_units()
+                    i += 1
+                self.save()
+            else:
+                logger.critical("A message of CRITICAL severity")
+                raise ex.NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
         else:
-            raise ex.RestoreElevatorError("Не удалось восстановить лифт, "
-                                          "приносим свои извинения. Спасатели уже вызваны!")
+            logger.warning("A WARNING")
+            raise ex.WeigthCapacityError("Вес выше допустимого")
 
-    def delete_unit(self, i=0):
-        if not self.elevator_broken:
-            while i < self.count_units:
-                if self.elevator_location == self.units[i][0]:
-                    self.count_units -= 1
-                    self.weigth_units -= self.units[i][1]
-                    self.units.pop(i)
-                    print("Человек вышел!\n")
-                    with open("Units.json", "w") as write_file:
-                        j.dump(self.units, write_file)
-                    with open("UnitsWeigth.json", "w") as write_file:
-                        j.dump(self.weigth_units, write_file)
-                    with open("UnitsCount.json", "w") as write_file:
-                        j.dump(self.count_units, write_file)
-                i += 1
+    def add_waiting_units(self, unit: Passenger):
+        if self.unit_location <= self.floors_count:
+            self.exit_floor = unit.exit_floor()  # Этаж на котором пассажир выйдет
+            self.weigth = unit.unit_weigth()  # Вес багажа и его пассажира
+            self.unit_location = unit.unit_location()  # местоположение ожидающего пассажира
+            self.waiting_count_units += 1
+            self.list_unit = [unit.exit_floor(), unit.unit_weigth(), unit.unit_location()]  # создание списка, в
+            # который попадут данные о пассажире, для общего списка всех ожидающих пассажиров, в данный момент
+            self.waiting_units.append(self.list_unit)
+            self.save()
+            print(f"Этаж на котором человек ожидает лифт: {self.unit_location}\nЭтаж на котором человек выйдет: "
+                  f"{self.exit_floor}\nВес пассажира и его багажа, если он есть: {self.weigth}кг\n")
         else:
-            raise ex.RestoreElevatorError("Не удалось восстановить лифт, "
-                                          "приносим свои извинения. Спасатели уже вызваны!")
+            logger.critical("A message of CRITICAL severity")
+            raise ex.NumberFloorError("Указанный этаж находится вне диапазона этажей этого дома")
 
-    def to_ride(self, number_floor, i=0):
-        if not self.elevator_broken:
-            num_break = random.randint(1, 5)
-            if num_break == 5:
-                self.break_elevator()
-                self.restore_elevator()
-                self.move(number_floor)
-                print(f'Мы прибыли на {number_floor} этаж\n')
-                self.add_unit()
-                try:
-                    while i < self.count_units + 100:
-                        self.delete_waiting_unit()
-                        self.delete_unit()
-                        i += 1
-                except:
-                    pass
-                return number_floor
-            if num_break <= 4:
-                self.move(number_floor)
-                print(f'Мы прибыли на {number_floor} этаж\n')
-                self.add_unit()
-                try:
-                    while i < self.count_units + 100:
-                        self.delete_waiting_unit()
-                        self.delete_unit()
-                        i += 1
-                except:
-                    pass
-                return number_floor
-        else:
-            raise ex.RestoreElevatorError("Не удалось восстановить лифт, "
-                                          "приносим свои извинения. Спасатели уже вызваны!")
+    def delete_waiting_units(self):
+        i = 0
+        while i < self.waiting_count_units:
+            if self.elevator_location == self.waiting_units[i][2]:  # сравнение местоположения лифта с
+                # местоположением ожидающего пассажира
+                self.waiting_count_units -= 1
+                self.waiting_units.pop(i)
+                self.save()
+                print("Очередь уменьшилась на 1\n")
+            i += 1
 
-    def check_waiting_units(self, i=0):
+    def add_units(self):
+        i = 0
+        while i < self.waiting_count_units:
+            if self.weigth_units <= self.elevator_capacity:
+                if self.weigth_units <= self.elevator_capacity:
+                    if self.elevator_location == self.waiting_units[i][2]:  # Сравнение местоположения пассажира с
+                        # этажом, на котором он находится
+                        self.weigth_units += self.waiting_units[i][1]  # Вес пассажира и его багажа
+                        self.count_units += 1
+                        self.units.append(self.waiting_units[i])  # Добавление пассажира в список
+                        # пассажиров находящихся в лифте
+                        self.save()
+                        print("Человек зашел!\n")
+                    i += 1
+            else:
+                logger.warning("A WARNING")
+                raise ex.WeigthCapacityError("Вес выше допустимого")
+
+    def delete_units(self):
+        i = 0
+        while i < self.count_units:
+            if self.elevator_location == self.units[i][0]:  # Сравнение местоположения пассажира с
+                # этажом, на котором он выйдет
+                self.count_units -= 1
+                self.weigth_units -= self.units[i][1]  # Вес пассажира и его багажа
+                self.units.pop(i)
+                self.save()
+                print("Человек вышел!\n")
+            i += 1
+
+    def to_ride(self, number_floor):
+        self.break_elevator()
+        self.move(number_floor)
+        print(f'Мы прибыли на {number_floor} этаж\n')
+        self.add_units()
+        self.delete_waiting_units()
+        self.delete_units()
+        self.save()
+        return number_floor
+
+    def check_waiting_units(self):
+        i = 0
+        self.save()
         try:
             while i < self.waiting_count_units + 100:
                 print(f"{i + 1}:\nЭтаж на котором человек ожидает лифт: {self.waiting_units[i][2]}\nЭтаж куда едет "
@@ -173,7 +172,9 @@ class Elevator:
         except:
             pass
 
-    def check_units(self, i=0):
+    def check_units(self):
+        i = 0
+        self.save()
         try:
             while i < self.count_units + 100:
                 print(
@@ -184,11 +185,15 @@ class Elevator:
             pass
 
     def break_elevator(self):
-        self.elevator_broken = True
-        print("Лифт был сломан, пожалуйста подождите...")
-        time.sleep(3)
+        num_break = random.randint(1, 5)
+        if num_break == 5:
+            print("Лифт был сломан, пожалуйста подождите...")
+            time.sleep(3)
+            self.restore_elevator()
 
-    def restore_elevator(self, i=10):
+    @staticmethod
+    def restore_elevator():
+        i = 10
         print("Выполняется починка лифта, подождите 10 секунд\n")
         while i != 0:
             if i > 4:
@@ -201,16 +206,28 @@ class Elevator:
                 print(f"Идет починка лифта, осталось {i} секунда")
                 time.sleep(1)
             if i == 1:
-                if random.randint(1, 10) <= 9:
+                if random.randint(1, 10) <= 5:
                     print("")
                     print("Лифт восстановлен успешно!\n")
-                    self.elevator_broken = False
                 else:
-                    print("")
-                    self.elevator_broken = True
+                    logger.critical("A message of CRITICAL severity")
+                    raise ex.RestoreElevatorError("Не удалось восстановить лифт, "
+                                                  "приносим свои извинения. Спасатели уже вызваны!")
             i -= 1
 
+    def save(self):
+        to_save = {
+            "units": self.units,
+            "weigth_units": self.weigth_units,
+            "count_units": self.count_units,
+            "waiting_units": self.waiting_units,
+            "waiting_count_units": self.waiting_count_units,
+            "elevator_location": self.elevator_location
+        }
+        s.save("parameters.json", to_save)
+
     def check_elevator_condition(self):
+        self.save()
         print("Состояние лифта:\n")
         print(f"Этаж на котором находится лифт: {self.elevator_location}\nОбщий вес лифта: {self.weigth_units}\n"
               f"Количество пассажиров в ожидает: {self.waiting_count_units}\nКоличество пассажиров в "
