@@ -1,16 +1,16 @@
 from loguru import logger
 import random
 import time
-from Human import Passenger
+from human import Passenger
 from Saver import SaverToJSON as s
-from Loader import LoaderToJson as l
-from Exceptions import Exceptions as ex
+from loader import LoaderToJson as l
+from exceptions import Exceptions as ex
 
 
 # noinspection PyBroadException
 class Elevator:
     def __init__(self, floors_count, elevator_capacity):
-        parameters = l.load("parameters.json")
+        parameters = l.load("../docs/parameters.json")
         self.list_unit = []
         self.num_break = 0
         self.floors_count = floors_count
@@ -99,9 +99,7 @@ class Elevator:
             self.weigth = unit.unit_weigth()  # Вес багажа и его пассажира
             self.unit_location = unit.unit_location()  # местоположение ожидающего пассажира
             self.waiting_count_units += 1
-            self.list_unit = [unit.exit_floor(), unit.unit_weigth(), unit.unit_location()]  # создание списка, в
-            # который попадут данные о пассажире, для общего списка всех ожидающих пассажиров, в данный момент
-            self.waiting_units.append(self.list_unit)
+            self.waiting_units.append([unit.exit_floor(), unit.unit_weigth(), unit.unit_location()])
             self.save()
             print(f"Этаж на котором человек ожидает лифт: {self.unit_location}\nЭтаж на котором человек выйдет: "
                   f"{self.exit_floor}\nВес пассажира и его багажа, если он есть: {self.weigth}кг\n")
@@ -224,7 +222,7 @@ class Elevator:
             "waiting_count_units": self.waiting_count_units,
             "elevator_location": self.elevator_location
         }
-        s.save("parameters.json", to_save)
+        s.save("../docs/parameters.json", to_save)
 
     def check_elevator_condition(self):
         self.save()

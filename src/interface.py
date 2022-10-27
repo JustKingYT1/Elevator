@@ -1,6 +1,6 @@
-from Elevator import Elevator
-from Human import Passenger as p
-from Exceptions import Exceptions as ex
+from elevator import Elevator
+from human import Passenger as p
+from exceptions import Exceptions as ex
 
 capacity_elev = 1200
 floor_count_elev = 10

@@ -1,6 +1,6 @@
 import unittest
-from Elevator import Elevator
-from Human import Passenger
+from elevator import Elevator
+from human import Passenger
 
 
 class TestElevator(unittest.TestCase):
