@@ -5,6 +5,7 @@ from exceptions import Exceptions as ex
 capacity_elev = 1200
 floor_count_elev = 10
 elev = Elevator(floor_count_elev, capacity_elev)
+elev1 = Elevator(floor_count_elev, capacity_elev)
 num_elev_location = elev.elevator_location
 
 

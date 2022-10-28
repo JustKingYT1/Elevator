@@ -43,14 +43,19 @@ class Elevator:
                 count_waiting_units = self.waiting_count_units
                 while i != count_waiting_units:
                     j = 0
-                    while j < self.floors_count:
-                        if self.elevator_location < self.waiting_units[0][2]:
-                            self.elevator_location += 1
-                        elif self.elevator_location > self.waiting_units[0][2]:
-                            self.elevator_location -= 1
-                        elif self.elevator_location == self.waiting_units[0][2]:
-                            break
-                        j += 1
+                    try:
+                        while j < self.floors_count:
+                            if self.elevator_location <= self.floors_count:
+                                if self.elevator_location < self.waiting_units[0][2]:
+                                    self.elevator_location += 1
+                                elif self.elevator_location > self.waiting_units[0][2]:
+                                    self.elevator_location -= 1
+                                elif self.elevator_location == self.waiting_units[0][2]:
+                                    break
+                            j += 1
+                    except:
+                        i += 1
+                        continue
                     print("")
                     print(f"Мы прибыли на {self.elevator_location} этаж")
                     print("")
@@ -109,14 +114,17 @@ class Elevator:
 
     def delete_waiting_units(self):
         i = 0
-        while i < self.waiting_count_units:
-            if self.elevator_location == self.waiting_units[i][2]:  # сравнение местоположения лифта с
-                # местоположением ожидающего пассажира
-                self.waiting_count_units -= 1
-                self.waiting_units.pop(i)
-                self.save()
-                print("Очередь уменьшилась на 1\n")
-            i += 1
+        try:
+            while i < 100:
+                if self.elevator_location == self.waiting_units[0][2]:  # сравнение местоположения лифта с
+                    # местоположением ожидающего пассажира
+                    self.waiting_count_units -= 1
+                    self.waiting_units.pop(0)
+                    self.save()
+                    print("Очередь уменьшилась на 1\n")
+                i += 1
+        except:
+            pass
 
     def add_units(self):
         i = 0
